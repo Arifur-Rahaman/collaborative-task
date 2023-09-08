@@ -1,4 +1,5 @@
 import { Card, Input, Form, Button, message } from 'antd'
+import { v4 as uuidv4 } from 'uuid';
 import { Link, useNavigate } from 'react-router-dom';
 import {USERS} from '../../const'
 import useLocalStore from '../../hooks/useLocalStore';
@@ -22,7 +23,7 @@ const SignUp = () => {
             message.error("Already signed up!");
             return
         }
-        const updated = {...value, groups:[]}
+        const updated = {...value, id: uuidv4(), groups: []}
         delete updated.confirmPassword;
         setUsers([...users, updated])
         message.success("Signed up successfully!");

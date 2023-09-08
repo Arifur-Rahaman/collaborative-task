@@ -1,33 +1,64 @@
-import { Button, Card, Form, Input, Modal, Progress, Select, Table } from "antd";
+import { Button, Card, Form, Input, Modal, Progress, Select, Table, DatePicker, Tag } from "antd";
 import { AiOutlineClockCircle, AiOutlineUnorderedList, AiOutlinePieChart, AiOutlineLayout } from "react-icons/ai";
+import { v4 as uuidv4 } from 'uuid';
 import { useParams } from "react-router-dom";
 import useLocalStore from "../../hooks/useLocalStore";
-import { GROUPS, USERS } from "../../const";
+import { AUTH_DATA, GROUPS, USERS } from "../../const";
 import { useState } from "react";
+import dayjs from "dayjs";
+
+const { TextArea } = Input
 
 const GroupDetails = () => {
     const { id } = useParams()
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+    const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false)
 
     //Retrieve data from local store
     const [groups, setGroups] = useLocalStore(GROUPS, [])
     const [users, setUsers] = useLocalStore(USERS, [])
+    const [authData] = useLocalStore(AUTH_DATA, {})
 
     const currentGroup = groups.find((group: any) => group.id === id)
 
     //Invite new members
-    const inviteMember = (values: any)=>{
+    const inviteMember = (values: any) => {
         const newInvitedMembers = users.filter((user: any) => values.invitedMembers.includes(user.id))
-        setGroups(groups.map((group:any)=>group.id ===currentGroup.id ? {...group, invitedMembers:[...group.invitedMembers, ...newInvitedMembers]} :group))
+        setGroups(groups.map((group: any) => group.id === currentGroup.id ? { ...group, invitedMembers: [...group.invitedMembers, ...newInvitedMembers] } : group))
         setIsInviteModalOpen(false)
     }
 
+    //Create task
+    const createTask = (values: any) => {
+        values.dueDate = values.dueDate.format()
+        values.status = 'todo'
+        values.id = uuidv4()
+        setGroups(groups.map((group:any)=>group.id === currentGroup.id? {...group, tasks:[values, ...group.tasks]}: group))
+        setIsCreateTaskModalOpen(false)
+    }
+
+    const updateTaskStatus = (taskToBeUpdate:any) =>{
+        const currentStatus = taskToBeUpdate.status|| 'todo'
+        let updatedStatus = '';
+        if(currentStatus ==='todo'){
+            updatedStatus = 'in progress'
+        }
+        else if(currentStatus === 'in progress'){
+            updatedStatus = 'completed'
+        }
+        else if(currentStatus === 'completed'){
+            updatedStatus = 'todo'
+        }
+
+        setGroups(groups.map((group:any)=>group.id === currentGroup.id? {...group, tasks: group.tasks.map((task:any)=>task.id === taskToBeUpdate.id? {...task, status:updatedStatus}: task)}: group))
+    }
+
     //Remove member from options those are already member of invited
-    const getOptions = ()=>{
-        const membersId = currentGroup.members.map((member:any)=>member.id)
-        const invitedMembersId = currentGroup.invitedMembers.map((im:any)=>im.id)
-        return users.filter((user:any)=> !membersId.includes(user.id) && !invitedMembersId.includes(user.id))
-        
+    const getOptions = () => {
+        const membersId = currentGroup.members.map((member: any) => member.id)
+        const invitedMembersId = currentGroup.invitedMembers.map((im: any) => im.id)
+        return users.filter((user: any) => !membersId.includes(user.id) && !invitedMembersId.includes(user.id))
+
     }
 
     const groupAnalytics = [
@@ -77,6 +108,57 @@ const GroupDetails = () => {
             },
         },
     ]
+    const tasksColumns = [
+        {
+            title: 'Title',
+            dataIndex: 'title',
+            key: 'id',
+            render: (text: string) => {
+                return <p>{text}</p>
+            },
+        },
+        {
+            title: 'Assignee',
+            dataIndex: 'assignee',
+            key: 'id',
+            render: (text: string) => {
+                const user = users?.find((user:any)=>user.id === text)
+                return <p>{user?.firstName} {user?.lastName}</p>
+            },
+        },
+        {
+            title: 'Priority',
+            dataIndex: 'priority',
+            key: 'id',
+            render: (text: string) => {
+                return <Tag className="capitalize">{text}</Tag>
+            },
+        },
+        {
+            title: 'Due Date',
+            dataIndex: 'dueDate',
+            key: 'id',
+            render: (text: string) => {
+                return <p>{dayjs(text).format('DD-MM-YYYY')}</p>
+            },
+        },
+        {
+            title: 'Status',
+            dataIndex: 'status',
+            key: 'id',
+            render: (text: string) => {
+                return <Tag className="capitalize">{text||'Todo'}</Tag>
+            },
+        },
+        {
+            title: 'Update Status',
+            dataIndex: 'status',
+            key: 'id',
+            render: (text: string, task:any) => {
+                return <Button onClick={()=>updateTaskStatus(task)}>Update</Button>
+            },
+        },
+    ]
 
     return (
         <div>
@@ -116,7 +198,7 @@ const GroupDetails = () => {
                         <Card bodyStyle={{ padding: '8px 16px' }}>
                             <div className="flex justify-between">
                                 <p className="text-lg">Members</p>
-                                <Button onClick={()=>setIsInviteModalOpen(true)}>Invite Member</Button>
+                                <Button onClick={() => setIsInviteModalOpen(true)}>Invite Member</Button>
                             </div>
                         </Card>
                         <div className="p-4">
@@ -151,12 +233,34 @@ const GroupDetails = () => {
                         </div>
                     </div>
                 </Card>
-                <Card className="col-start-2 col-end-4" bodyStyle={{ padding: 0 }}>
 
+                {/* Task Section */}
+                <Card className="col-start-2 col-end-4" bodyStyle={{ padding: 0 }}>
+                    <div className="mb-4">
+                        <Card bodyStyle={{ padding: '8px 16px' }}>
+                            <div className="flex justify-between">
+                                <p className="text-lg">Tasks</p>
+                                <Button onClick={() => setIsCreateTaskModalOpen(true)}>Add Task</Button>
+                            </div>
+                        </Card>
+                        <div className="p-4">
+                            <Table
+                                bordered={true}
+                                dataSource={currentGroup?.tasks}
+                                columns={tasksColumns}
+                                showHeader={true}
+                                pagination={false}
+                                rowKey={'id'}
+
+                            />
+                        </div>
+                    </div>
                 </Card>
             </div>
+
+            {/* Invite Member Modal */}
             <Modal
-                title="Create Group"
+                title="Invite Member"
                 footer={null}
                 open={isInviteModalOpen}
                 destroyOnClose
@@ -176,12 +280,97 @@ const GroupDetails = () => {
                             placeholder="Select Members"
                             optionLabelProp="label"
                             options={getOptions().map((user: any) => ({ label: `${user.firstName} ${user.lastName}`, value: user.id }))
-                        }
+                            }
                         />
                     </Form.Item>
                     <Form.Item className="col-span-full mb-0">
                         <Button block type="primary" htmlType="submit" className="bg-primary" size="large">
                             Invite
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            {/* Add new task Modal */}
+            <Modal
+                title="Create Task"
+                footer={null}
+                open={isCreateTaskModalOpen}
+                destroyOnClose
+                onCancel={() =>
+                    setIsCreateTaskModalOpen(false)
+                }
+            >
+                <Form onFinish={createTask} layout="vertical" scrollToFirstError={true} autoComplete="off">
+                    <Form.Item
+                        label="Title"
+                        name="title"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please input task title!",
+                            },
+                        ]}
+                    >
+                        <Input size="large" placeholder={"Task Title"} />
+                    </Form.Item>
+                    <Form.Item
+                        label="Description"
+                        name="description"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please input task description!",
+                            },
+                        ]}
+                    >
+                        <TextArea rows={4} placeholder="Task Description" />
+                    </Form.Item>
+                    <div className="grid grid-cols-12 gap-4">
+                        <div className="col-start-1 col-end-7">
+                            <Form.Item
+                                label="Due Date"
+                                name="dueDate"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: "Please select due date!",
+                                    },
+                                ]}
+                            >
+                                <DatePicker size="large" style={{ width: '100%' }} />
+                            </Form.Item >
+                        </div>
+                        <div className="col-start-7 col-end-13">
+                            <Form.Item
+                                label="Priority"
+                                name="priority"
+                            >
+                                <Select
+                                    style={{ width: '100%' }}
+                                    size="large"
+                                    placeholder="Select Priority"
+                                    optionLabelProp="label"
+                                    options={[{label:'High', value:'high'}, {label:'Medium', value:'medium'}, {label:'Low', value:'low'}]}
+                                />
+                            </Form.Item>
+                        </div>
+                    </div>
+                    <Form.Item
+                        label="Assign Member"
+                        name="assignee"
+                    >
+                        <Select
+                            style={{ width: '100%' }}
+                            size="large"
+                            placeholder="Select Member"
+                            optionLabelProp="label"
+                            options={currentGroup.members.map((user: any) => ({ label: `${user.firstName} ${user.lastName}`, value: user.id }))}
+                        />
+                    </Form.Item>
+                    <Form.Item className="col-span-full mb-0">
+                        <Button block type="primary" htmlType="submit" className="bg-primary" size="large">
+                            Submit
                         </Button>
                     </Form.Item>
                 </Form>

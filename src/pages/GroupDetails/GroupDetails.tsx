@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import useLocalStore from "../../hooks/useLocalStore";
 import { AUTH_DATA, GROUPS, USERS } from "../../const";
 import { useState } from "react";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import Layout from "../../layouts/Layout";
 
 const { TextArea } = Input
@@ -14,11 +14,13 @@ const GroupDetails = () => {
     const { id } = useParams()
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
     const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false)
+    const [filterStatus, setFilterStatus] = useState('')
+    const [sortPriority, setSortPriority] = useState('')
+    const [dueDate, setDueDate] = useState<(Dayjs | null)>(null)
 
     //Retrieve data from local store
     const [groups, setGroups] = useLocalStore(GROUPS, [])
-    const [users, setUsers] = useLocalStore(USERS, [])
-    const [authData] = useLocalStore(AUTH_DATA, {})
+    const [users] = useLocalStore(USERS, [])
 
     const currentGroup = groups.find((group: any) => group.id === id)
 
@@ -38,6 +40,7 @@ const GroupDetails = () => {
         setIsCreateTaskModalOpen(false)
     }
 
+    //Update task status
     const updateTaskStatus = (taskToBeUpdate: any) => {
         const currentStatus = taskToBeUpdate.status || 'pending'
         let updatedStatus = '';
@@ -60,6 +63,45 @@ const GroupDetails = () => {
         const invitedMembersId = currentGroup.invitedMembers.map((im: any) => im.id)
         return users.filter((user: any) => !membersId.includes(user.id) && !invitedMembersId.includes(user.id))
 
+    }
+
+    //Filter and sort task
+    function filterAndSortTasks() {
+        // Filter tasks by status
+        let filteredTasks = [...currentGroup.tasks];
+        if (filterStatus) {
+            filteredTasks = filteredTasks.filter((task: any) => task.status === filterStatus);
+        }
+
+        //Filter tasks by due date
+
+        if (dueDate) {
+            filteredTasks = filteredTasks.filter((task: any) => dayjs(task.dueDate).isSame(dueDate, 'date'));
+        }
+        //Sort by priority
+        const priorityOrder: { [key: string]: number } = {
+            high: 1,
+            medium: 2,
+            low: 3
+        };
+
+        if (sortPriority) {
+            filteredTasks.sort((taskA: {priority:string}, taskB: {priority:string}) => {
+                const priorityA = priorityOrder[taskA.priority];
+                const priorityB = priorityOrder[taskB.priority];
+
+                if (sortPriority === 'low to high') {
+                    return priorityB - priorityA;
+                } else if (sortPriority === 'high to low') {
+                    return priorityA - priorityB;
+                } else {
+                    return 0;
+                }
+            });
+        }
+
+
+        return filteredTasks;
     }
 
     const groupAnalytics = [
@@ -245,9 +287,37 @@ const GroupDetails = () => {
                             </div>
                         </Card>
                         <div className="p-4">
+                            <div className="grid grid-cols-3 mb-4 gap-4">
+                                <Select
+                                    allowClear
+                                    style={{ width: '100%' }}
+                                    placeholder="Filter by Status"
+                                    optionLabelProp="label"
+                                    options={[{ label: 'Pending', value: 'pending' }, { label: 'In Progress', value: 'in progress' }, { label: 'Completed', value: 'completed' }]}
+                                    onChange={(value: string) => { setFilterStatus(value) }}
+                                />
+                                <div>
+                                    <DatePicker
+                                        placeholder="Filter by due date"
+                                        style={{ width: '100%' }}
+                                        onChange={(value) => setDueDate(value)}
+                                    />
+                                </div>
+                                <div>
+                                    <Select
+                                        allowClear
+                                        style={{ width: '100%' }}
+                                        placeholder="Sort by priority"
+                                        optionLabelProp="label"
+                                        options={[{ label: 'High to low', value: 'high to low' }, { label: 'Low to high', value: 'low to high' }]}
+                                        onChange={(value) => setSortPriority(value)}
+                                    />
+                                </div>
+                            
+                            </div>
                             <Table
                                 bordered={true}
-                                dataSource={currentGroup?.tasks}
+                                dataSource={filterAndSortTasks()}
                                 columns={tasksColumns}
                                 showHeader={true}
                                 pagination={false}

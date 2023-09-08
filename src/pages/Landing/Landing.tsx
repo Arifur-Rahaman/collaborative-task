@@ -44,7 +44,7 @@ const Landing = () => {
             about: values.about,
             tasks: [],
             members: users.filter((user: any) => user.id === authData.id),
-            invitedMembers: users.filter((user: IUser) => values.invitedMembers.includes(user.id))
+            invitedMembers: users.filter((user: IUser) => values?.invitedMembers?.includes(user.id))
         }
         setGroups([...groups, newGroup])
         setUsers(users.map((user: IUser) => user.id === authData.id ? { ...user, groups: [...user.groups, newGroupId] } : user))

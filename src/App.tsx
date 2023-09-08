@@ -5,12 +5,19 @@ import Landing from "./pages/Landing/Landing";
 import { ConfigProvider } from "antd";
 import SignUp from "./pages/SignUp/SignUp";
 import LogIn from "./pages/LogIn/LogIn";
+import GroupDetails from "./pages/GroupDetails/GroupDetails";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: (
       <Landing/>
+    ),
+  },
+  {
+    path: "/group/:id",
+    element: (
+      <GroupDetails/>
     ),
   },
   {

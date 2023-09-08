@@ -107,7 +107,7 @@ const GroupDetails = () => {
     const groupAnalytics = [
         {
             title: 'Total Member',
-            value: 'Sample category',
+            value: currentGroup?.members.length,
             icon: <AiOutlineClockCircle color={'#FA8B0C'} size={25} />,
             background_color: '#FEF3E6',
         },
@@ -119,14 +119,14 @@ const GroupDetails = () => {
         },
         {
             title: 'Task Completed',
-            value: 10,
+            value: currentGroup?.tasks?.filter((task:any)=>task?.status==='completed')?.length,
             icon: <AiOutlinePieChart color={'#FF69A5'} size={25} />,
             background_color: '#FFF0F6',
         },
         {
             title: 'Total Pending',
             // value: project.total_spending,
-            value: 10,
+            value: currentGroup?.tasks?.filter((task:any)=>task?.status==='pending')?.length,
             icon: <AiOutlineLayout color={'#20C997'} size={25} />,
             background_color: '#E8F9F4',
         },
@@ -213,7 +213,7 @@ const GroupDetails = () => {
                         <p className="text-white">Progress</p>
                         <Progress
                             strokeColor='white'
-                            percent={80}
+                            percent={Math.round((currentGroup?.tasks?.filter((task:any)=>task?.status ==='completed')?.length / currentGroup?.tasks?.length) * 100)}
                             trailColor='#4DD4AC'
                             strokeWidth={6}
                             className='project_desc_progress_text'
@@ -223,7 +223,7 @@ const GroupDetails = () => {
                         {groupAnalytics.map(data => (
                             <div key={data.title} className="flex items-center">
                                 <div className="mr-4 p-3 rounded" style={{ background: data.background_color }}>{data.icon}</div>
-                                <p className="text-grey-dark-2">{data.title}</p>
+                                <p className="text-grey-dark-2">{data.title}: {data?.value}</p>
                             </div>
                         ))}
                     </div>

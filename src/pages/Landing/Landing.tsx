@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { AUTH_DATA, GROUPS, USERS } from "../../const";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../layouts/Layout";
+import dayjs from "dayjs";
 const { TextArea } = Input
 
 interface IGroup {
@@ -15,7 +16,8 @@ interface IGroup {
     about: string
     tasks: {}[]
     members: { firstName: string; lastName: string; id: string }[]
-    invitedMembers: {}[]
+    invitedMembers: {}[],
+    createdAt: string
 }
 
 interface IUser {
@@ -44,7 +46,8 @@ const Landing = () => {
             about: values.about,
             tasks: [],
             members: users.filter((user: any) => user.id === authData.id),
-            invitedMembers: users.filter((user: IUser) => values?.invitedMembers?.includes(user.id))
+            invitedMembers: users.filter((user: IUser) => values?.invitedMembers?.includes(user.id)),
+            createdAt: dayjs().format()
         }
         setGroups([...groups, newGroup])
         setUsers(users.map((user: IUser) => user.id === authData.id ? { ...user, groups: [...user.groups, newGroupId] } : user))
@@ -97,14 +100,14 @@ const Landing = () => {
                                                 </p>
                                             </div>
                                             <span className="text-grey-dark-2 block text-sm mb-1">Created At</span>
-                                            <p className="text-grey-dark-1 text-sm mb-4">21 Aug, 2023</p>
+                                            <p className="text-grey-dark-1 text-sm mb-4">{dayjs(group?.createdAt)?.format('MMM D, YYYY')}</p>
                                             <Progress
-                                                percent={80}
+                                                percent={Math.round((group?.tasks?.filter((task:any)=>task.status ==='completed')?.length / group?.tasks.length) * 100)}
                                                 strokeColor={colors.primary}
                                                 strokeWidth={6}
                                                 status="active"
                                             />
-                                            <p className="text-grey-dark-2 text-sm">10/{group.tasks.length} Task Completed</p>
+                                            <p className="text-grey-dark-2 text-sm">{group?.tasks?.filter((task:any)=>task.status ==='completed')?.length}/{group?.tasks.length} Task Completed</p>
                                             <Divider />
                                             <p className="text-grey-dark-2 text-sm">Group Members</p>
                                             <Avatar.Group>

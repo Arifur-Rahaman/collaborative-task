@@ -6,30 +6,35 @@ import { ConfigProvider } from "antd";
 import SignUp from "./pages/SignUp/SignUp";
 import LogIn from "./pages/LogIn/LogIn";
 import GroupDetails from "./pages/GroupDetails/GroupDetails";
+import ProtectedRoute from "./auth/ProtectedRoute";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: (
-      <Landing/>
+      <ProtectedRoute>
+        <Landing />
+      </ProtectedRoute>
     ),
   },
   {
     path: "/group/:id",
     element: (
-      <GroupDetails/>
+      <ProtectedRoute>
+        <GroupDetails />
+      </ProtectedRoute>
     ),
   },
   {
     path: "/signup",
     element: (
-      <SignUp/>
+      <SignUp />
     ),
   },
   {
     path: "/login",
     element: (
-      <LogIn/>
+      <LogIn />
     ),
   },
 ])
@@ -44,7 +49,7 @@ function App() {
         },
       }}
     >
-      <RouterProvider router={router}/>
+      <RouterProvider router={router} />
     </ConfigProvider>
   )
 }

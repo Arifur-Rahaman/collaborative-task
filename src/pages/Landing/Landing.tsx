@@ -6,6 +6,7 @@ import useLocalStore from "../../hooks/useLocalStore";
 import { v4 as uuidv4 } from 'uuid';
 import { AUTH_DATA, GROUPS, USERS } from "../../const";
 import { useNavigate } from "react-router-dom";
+import Layout from "../../layouts/Layout";
 const { TextArea } = Input
 
 interface IGroup {
@@ -60,7 +61,7 @@ const Landing = () => {
     }
 
     return (
-        <div>
+        <Layout>
             <div className="grid grid-cols-12 gap-4">
                 <Card className="col-start-1 col-end-10">
                     <Card bordered={false} className="mb-4" bodyStyle={{ padding: '8px 16px' }}>
@@ -215,7 +216,7 @@ const Landing = () => {
                     </Form.Item>
                 </Form>
             </Modal>
-        </div>
+        </Layout>
     );
 };
 

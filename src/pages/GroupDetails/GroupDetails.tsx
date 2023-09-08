@@ -6,6 +6,7 @@ import useLocalStore from "../../hooks/useLocalStore";
 import { AUTH_DATA, GROUPS, USERS } from "../../const";
 import { useState } from "react";
 import dayjs from "dayjs";
+import Layout from "../../layouts/Layout";
 
 const { TextArea } = Input
 
@@ -31,26 +32,26 @@ const GroupDetails = () => {
     //Create task
     const createTask = (values: any) => {
         values.dueDate = values.dueDate.format()
-        values.status = 'todo'
+        values.status = 'pending'
         values.id = uuidv4()
-        setGroups(groups.map((group:any)=>group.id === currentGroup.id? {...group, tasks:[values, ...group.tasks]}: group))
+        setGroups(groups.map((group: any) => group.id === currentGroup.id ? { ...group, tasks: [values, ...group.tasks] } : group))
         setIsCreateTaskModalOpen(false)
     }
 
-    const updateTaskStatus = (taskToBeUpdate:any) =>{
-        const currentStatus = taskToBeUpdate.status|| 'todo'
+    const updateTaskStatus = (taskToBeUpdate: any) => {
+        const currentStatus = taskToBeUpdate.status || 'pending'
         let updatedStatus = '';
-        if(currentStatus ==='todo'){
+        if (currentStatus === 'pending') {
             updatedStatus = 'in progress'
         }
-        else if(currentStatus === 'in progress'){
+        else if (currentStatus === 'in progress') {
             updatedStatus = 'completed'
         }
-        else if(currentStatus === 'completed'){
-            updatedStatus = 'todo'
+        else if (currentStatus === 'completed') {
+            updatedStatus = 'pending'
         }
 
-        setGroups(groups.map((group:any)=>group.id === currentGroup.id? {...group, tasks: group.tasks.map((task:any)=>task.id === taskToBeUpdate.id? {...task, status:updatedStatus}: task)}: group))
+        setGroups(groups.map((group: any) => group.id === currentGroup.id ? { ...group, tasks: group.tasks.map((task: any) => task.id === taskToBeUpdate.id ? { ...task, status: updatedStatus } : task) } : group))
     }
 
     //Remove member from options those are already member of invited
@@ -122,7 +123,7 @@ const GroupDetails = () => {
             dataIndex: 'assignee',
             key: 'id',
             render: (text: string) => {
-                const user = users?.find((user:any)=>user.id === text)
+                const user = users?.find((user: any) => user.id === text)
                 return <p>{user?.firstName} {user?.lastName}</p>
             },
         },
@@ -147,23 +148,23 @@ const GroupDetails = () => {
             dataIndex: 'status',
             key: 'id',
             render: (text: string) => {
-                return <Tag className="capitalize">{text||'Todo'}</Tag>
+                return <Tag className="capitalize">{text || 'Pending'}</Tag>
             },
         },
         {
             title: 'Update Status',
             dataIndex: 'status',
             key: 'id',
-            render: (text: string, task:any) => {
-                return <Button onClick={()=>updateTaskStatus(task)}>Update</Button>
+            render: (text: string, task: any) => {
+                return <Button onClick={() => updateTaskStatus(task)}>Update</Button>
             },
         },
     ]
 
     return (
-        <div>
+        <Layout>
             <div className="grid grid-cols-3 gap-4">
-                <Card className="col-start-1 col-end-2" bodyStyle={{ padding: 0 }}>
+                <Card className="col-start-1 col-end-2" bodyStyle={{ padding: 0 }} bordered={false}>
                     <Card className="bg-primary">
                         <p className="text-white">Progress</p>
                         <Progress
@@ -183,7 +184,7 @@ const GroupDetails = () => {
                         ))}
                     </div>
                 </Card>
-                <Card className="col-start-2 col-end-4" bodyStyle={{ padding: 0 }}>
+                <Card className="col-start-2 col-end-4" bodyStyle={{ padding: 0 }} bordered={false}>
                     <Card bodyStyle={{ padding: "12px 16px" }}>
                         <p className="text-grey-dark-1 text-base">About Group</p>
                     </Card>
@@ -235,7 +236,7 @@ const GroupDetails = () => {
                 </Card>
 
                 {/* Task Section */}
-                <Card className="col-start-2 col-end-4" bodyStyle={{ padding: 0 }}>
+                <Card className="col-start-2 col-end-4" bodyStyle={{ padding: 0 }} bordered={false}>
                     <div className="mb-4">
                         <Card bodyStyle={{ padding: '8px 16px' }}>
                             <div className="flex justify-between">
@@ -351,7 +352,7 @@ const GroupDetails = () => {
                                     size="large"
                                     placeholder="Select Priority"
                                     optionLabelProp="label"
-                                    options={[{label:'High', value:'high'}, {label:'Medium', value:'medium'}, {label:'Low', value:'low'}]}
+                                    options={[{ label: 'High', value: 'high' }, { label: 'Medium', value: 'medium' }, { label: 'Low', value: 'low' }]}
                                 />
                             </Form.Item>
                         </div>
@@ -375,7 +376,7 @@ const GroupDetails = () => {
                     </Form.Item>
                 </Form>
             </Modal>
-        </div>
+        </Layout>
     );
 };
 

@@ -3,7 +3,7 @@ import { AiOutlineClockCircle, AiOutlineUnorderedList, AiOutlinePieChart, AiOutl
 import { v4 as uuidv4 } from 'uuid';
 import { useParams } from "react-router-dom";
 import useLocalStore from "../../hooks/useLocalStore";
-import { AUTH_DATA, GROUPS, USERS } from "../../const";
+import {GROUPS, USERS } from "../../const";
 import { useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import Layout from "../../layouts/Layout";
@@ -138,6 +138,7 @@ const GroupDetails = () => {
             dataIndex: 'first_name',
             key: 'id',
             render: (text: string, record: any) => {
+                console.log(text)
                 const { firstName, lastName } = record
                 return <p>{firstName} {lastName}</p>
             },
@@ -198,6 +199,7 @@ const GroupDetails = () => {
             dataIndex: 'status',
             key: 'id',
             render: (text: string, task: any) => {
+                console.log(text)
                 return <Button onClick={() => updateTaskStatus(task)}>Update</Button>
             },
         },
